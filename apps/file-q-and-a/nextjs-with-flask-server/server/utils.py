@@ -15,9 +15,8 @@ logging.basicConfig(
 )
 
 def get_pinecone_id_for_file_chunk(session_id, filename, chunk_index):
-
-    
-    return str(session_id+"-!"+ord(filename)+"-!"+str(chunk_index))
+    filename = ''.join(str(ord(c)) for c in filename)
+    return str(session_id+"-!"+filename+"-!"+str(chunk_index))
 
 def get_embedding(text, engine):
     return openai.Engine(id=engine).embeddings(input=[text])["data"][0]["embedding"]

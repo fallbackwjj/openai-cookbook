@@ -1,10 +1,10 @@
 # ----- PINECONE CONFIG -----
-PINECONE_API_KEY: "<your Pinecone API key>"
-PINECONE_INDEX: "<your Pinecone Index name>" # dimensions: 1536, metric: cosine similarity
-PINECONE_ENV: "<your Pinecone env e.g.us-west1-gcp>"
+PINECONE_API_KEY: "00f02102-d83f-4d74-b51a-c0e5744ef03a"
+PINECONE_INDEX: "chatdoc" # dimensions: 1536, metric: cosine similarity
+PINECONE_ENV: "us-west1-gcp-free"
 
 # ----- SERVER PORT ----
-SERVER_PORT: "8080"
+SERVER_PORT: "8300"
 
 # ---- OPENAI CONFIG -----
 EMBEDDINGS_MODEL: "text-embedding-ada-002"
