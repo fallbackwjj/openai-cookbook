@@ -23,6 +23,7 @@ export async function getEmbeddingsForText({
   for (let i = 0; i < textChunks.length; i += batchSize) {
     batches.push(textChunks.slice(i, i + batchSize));
   }
+  console.log(batches)
 
   try {
     const batchPromises = batches.map((batch) => embedding({ input: batch }));
