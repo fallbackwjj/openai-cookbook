@@ -23,15 +23,6 @@ logging.basicConfig(
     ]
 )
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[
-        logging.FileHandler("debug.log"),
-        logging.StreamHandler(sys.stdout)
-    ]
-)
-
 def load_pinecone_index() -> pinecone.Index:
     """
     Load index from Pinecone, raise error if the index can't be found.
@@ -97,4 +88,4 @@ def healthcheck():
     return "OK"
 
 if __name__ == "__main__":
-    app.run(debug=True, port=SERVER_PORT, threaded=True)
+    app.run(debug=True, host='0.0.0.0', port=SERVER_PORT, threaded=True)
