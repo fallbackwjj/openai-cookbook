@@ -51,7 +51,7 @@ function FileQandAArea(props: FileQandAAreaProps) {
 
     try {
       const answerResponse = await axios.post(
-        `${SERVER_ADDRESS}/answer_question`,
+        `${SERVER_ADDRESS}/backend/answer_question`,
         {
           question,
         }
