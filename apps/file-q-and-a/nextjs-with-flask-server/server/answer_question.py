@@ -4,14 +4,15 @@ from config import *
 from flask import current_app
 
 import openai
+import json
 
 from config import *
 
-TOP_K = 10
+TOP_K = 2
 
 
 def get_answer_from_files(question, session_id, pinecone_index):
-    logging.info(f"Getting answer for question: {question}")
+    logging.warning(f"Getting answer for question: {question}")
 
     search_query_embedding = get_embedding(question, EMBEDDINGS_MODEL)
 
@@ -29,17 +30,21 @@ def get_answer_from_files(question, session_id, pinecone_index):
         files_string = ""
         file_text_dict = current_app.config["file_text_dict"]
 
+        listChunkList = {}
         for i in range(len(query_response.matches)):
             result = query_response.matches[i]
             file_chunk_id = result.id
-            score = result.score
+            score = result.score 
             filename = result.metadata["filename"]
+            filechunkid = result.metadata["file_chunk_index"]
             file_text = file_text_dict.get(file_chunk_id)
             file_string = f"###\n\"{filename}\"\n{file_text}\n"
             if score < COSINE_SIM_THRESHOLD and i > 0:
                 logging.warning(
                     f"[get_answer_from_files] score {score} is below threshold {COSINE_SIM_THRESHOLD} and i is {i}, breaking")
                 break
+            if len(file_text) != 0:
+                listChunkList[filechunkid] = file_text
             files_string += file_string
         files_string = files_string[0:2000]
         # Note: this is not the proper way to use the ChatGPT conversational format, but it works for now
@@ -71,10 +76,11 @@ def get_answer_from_files(question, session_id, pinecone_index):
         choices = response["choices"]  # type: ignore
         answer = choices[0].message.content.strip()
 
-        listOfStrings = [f"Received query response from Pinecone: {query_response}",  f"Messages: {messages}", f"answer: {answer}"]
-        logging.warning(f"[get_answer_from_files] answer: {answer}")
+        listOfStrings = [f"pinecone => {str(listChunkList)}", f"prompt => {messages}", f"answer => {answer}"]
+        #listOfStrings = [f"answer: {answer}"]
+        logging.warning(f"[get_answer_from_files] answer: {listOfStrings}")
 
-        return jsonify({"answer": "\n".join(listOfStrings)})
+        return jsonify({"answer": answer})
 
     except Exception as e:
         logging.warning(f"[get_answer_from_files] error: {e}")

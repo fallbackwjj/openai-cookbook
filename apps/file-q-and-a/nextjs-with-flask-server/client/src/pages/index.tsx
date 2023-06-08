@@ -1,9 +1,12 @@
 import Head from "next/head";
+import React from "react";
 import { useState } from "react";
 
 import FileQandAArea from "../components/FileQandAArea";
 import { FileLite } from "../types/file";
 import FileUploadArea from "../components/FileUploadArea";
+
+import PlaygroundMessages from "../components/playground/PlaygroundMessages";
 
 export default function FileQandA() {
   const [files, setFiles] = useState<FileLite[]>([]);
@@ -29,6 +32,7 @@ export default function FileQandA() {
         />
 
         <FileQandAArea files={files} />
+        <PlaygroundMessages />
       </div>
     </div>
   );

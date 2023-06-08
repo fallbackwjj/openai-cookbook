@@ -6,6 +6,9 @@ from PyPDF2 import PdfReader
 from numpy import array, average
 from flask import current_app
 from config import *
+from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.vectorstores import Pinecone
 
 from utils import get_embeddings, get_pinecone_id_for_file_chunk
 
@@ -30,7 +33,7 @@ def handle_file(file, session_id, pinecone_index, tokenizer):
 
     # Extract text from the file
     try:
-        extracted_text = extract_text_from_file(file)
+        extracted_text, pdf_list = extract_text_from_file(file)
     except ValueError as e:
         logging.error(
             "[handle_file] Error extracting text from file: {}".format(e))
@@ -40,17 +43,21 @@ def handle_file(file, session_id, pinecone_index, tokenizer):
     file_text_dict[filename] = extracted_text
 
     # Handle the extracted text as a string
-    return handle_file_string(filename, session_id, extracted_text, pinecone_index, tokenizer, file_text_dict)
+    return handle_file_string(filename, session_id, extracted_text, pinecone_index, tokenizer, file_text_dict, pdf_list)
 
 # Extract text from a file based on its mimetype
 def extract_text_from_file(file):
     """Return the text content of a file."""
+    pdf_list = []
     if file.mimetype == "application/pdf":
         # Extract text from pdf using PyPDF2
         reader = PdfReader(file)
-        extracted_text = ""
-        for page in reader.pages:
-            extracted_text += page.extract_text()
+        extracted_text = ''
+        for i, page in enumerate(reader.pages):
+            text = page.extract_text()
+            if text:
+                extracted_text += text
+                pdf_list.append(text)
     elif file.mimetype == "text/plain":
         # Read text from plain text file
         extracted_text = file.read().decode("utf-8")
@@ -62,10 +69,10 @@ def extract_text_from_file(file):
         # Unsupported file type
         raise ValueError("Unsupported file type: {}".format(file.mimetype))
 
-    return extracted_text
+    return (extracted_text, pdf_list)
 
 # Handle a file string by creating embeddings and upserting them to Pinecone
-def handle_file_string(filename, session_id, file_body_string, pinecone_index, tokenizer, file_text_dict):
+def handle_file_string(filename, session_id, file_body_string, pinecone_index, tokenizer, file_text_dict, pdf_list):
     """Handle a file string by creating embeddings and upserting them to Pinecone."""
     logging.info("[handle_file_string] Starting...")
 
@@ -79,7 +86,7 @@ def handle_file_string(filename, session_id, file_body_string, pinecone_index, t
     # Create embeddings for the text
     try:
         text_embeddings, average_embedding = create_embeddings_for_text(
-            text_to_embed, tokenizer)
+            text_to_embed, tokenizer, pdf_list)
         logging.info(
             "[handle_file_string] Created embedding for {}".format(filename))
     except Exception as e:
@@ -90,6 +97,7 @@ def handle_file_string(filename, session_id, file_body_string, pinecone_index, t
     # Get the vectors array of triples: file_chunk_id, embedding, metadata for each embedding
     # Metadata is a dict with keys: filename, file_chunk_index
     vectors = []
+    i = 1
     for i, (text_chunk, embedding) in enumerate(text_embeddings):
         id = get_pinecone_id_for_file_chunk(session_id, filename, i)
         file_text_dict[id] = text_chunk
@@ -127,13 +135,25 @@ def get_col_average_from_list_of_lists(list_of_lists):
         return average_embedding.tolist()
 
 # Create embeddings for a text using a tokenizer and an OpenAI engine
-def create_embeddings_for_text(text, tokenizer):
+def create_embeddings_for_text(text, tokenizer, pdf_list):
     """Return a list of tuples (text_chunk, embedding) and an average embedding for a text."""
-    token_chunks = list(chunks(text, TEXT_EMBEDDING_CHUNK_SIZE, tokenizer))
-    text_chunks = [tokenizer.decode(chunk) for chunk in token_chunks]
-
-    # Split text_chunks into shorter arrays of max length 10
-    text_chunks_arrays = [text_chunks[i:i+MAX_TEXTS_TO_EMBED_BATCH_SIZE] for i in range(0, len(text_chunks), MAX_TEXTS_TO_EMBED_BATCH_SIZE)]
+    # pdf按页切分
+    if len(pdf_list) == 0:
+        token_chunks = list(chunks(text, TEXT_EMBEDDING_CHUNK_SIZE, tokenizer))
+        text_chunks = [tokenizer.decode(chunk) for chunk in token_chunks]
+        # Split text_chunks into shorter arrays of max length 10
+        text_chunks_arrays = [text_chunks[i:i+MAX_TEXTS_TO_EMBED_BATCH_SIZE] for i in range(0, len(text_chunks), MAX_TEXTS_TO_EMBED_BATCH_SIZE)]
+    else:
+        text_chunks = pdf_list
+        text_chunks_arrays = pdf_list
+        text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=300,
+            chunk_overlap=30,
+            length_function=len
+        )
+        text_chunks = text_splitter.split_text(text)
+        logging.warning(text_chunks)
+        text_chunks_arrays = text_chunks
 
     # Call get_embeddings for each shorter array and combine the results
     embeddings = []

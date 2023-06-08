@@ -61,7 +61,7 @@ app = create_app()
 def process_file():
     try:
         file = request.files['file']
-        logging.info(str(file))
+        logging.warning(str(file))
         handle_file(
             file, app.session_id, app.pinecone_index, app.tokenizer)
         return jsonify({"success": True})
