@@ -1,0 +1,1 @@
+nohup bash script/start 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 > output.log 2>&1 &
