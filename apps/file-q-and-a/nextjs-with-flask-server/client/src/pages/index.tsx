@@ -6,8 +6,6 @@ import FileQandAArea from "../components/FileQandAArea";
 import { FileLite } from "../types/file";
 import FileUploadArea from "../components/FileUploadArea";
 
-import PlaygroundMessages from "../components/playground/PlaygroundMessages";
-
 export default function FileQandA() {
   const [files, setFiles] = useState<FileLite[]>([]);
 
@@ -16,7 +14,7 @@ export default function FileQandA() {
       <Head>
         <title>File Q&A</title>
       </Head>
-      <div className="max-w-3xl mx-auto m-8 space-y-8 text-gray-800">
+      <div className="max-w-5xl mx-auto m-8 space-y-8 text-gray-800">
         <h1 className="text-4xl">File Q&A</h1>
 
         <div className="">
@@ -32,7 +30,6 @@ export default function FileQandA() {
         />
 
         <FileQandAArea files={files} />
-        <PlaygroundMessages />
       </div>
     </div>
   );

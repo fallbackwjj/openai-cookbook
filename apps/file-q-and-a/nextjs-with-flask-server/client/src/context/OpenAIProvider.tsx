@@ -18,12 +18,35 @@ import React, { PropsWithChildren, useCallback, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "@/context/AuthProvider";
 
+import { SERVER_ADDRESS } from "../types/constants";
+
 const CHAT_ROUTE = "/";
+
+const defaultText = `Given a question, try to answer it using the content of the file extracts below.
+
+if you cannot answer, or find a relevant file, just output "I couldn't find the answer to that question in your files.".
+
+If the answer is not contained in the files or if there are no file extracts, respond with "I couldn't find the answer to that question in your files." .
+
+If the question is not actually a question, respond with "That's not a valid question.".
+
+In the cases where you can find the answer, first give the answer. 
+
+Then explain how you found the answer from the source or sources, and use the exact filenames of the source files you mention. 
+
+Do not make up the names of any other files other than those mentioned in the files context.
+
+Give the answer in markdown format，Use the following format:
+Question: <question>Files:<###"filename 1" file text>\n<###"filename 2" file text>...\n\n
+Answer: <answer or "I couldn't find the answer to that question in your files" or "That's not a valid question"> 
+Question: {question}
+Files:\n{files_string}\n
+Answer:`
 
 const defaultContext = {
   systemMessage: {
     role: "system",
-    content: "You are a helpful AI chatbot.",
+    content: defaultText,
   } as OpenAISystemMessage,
   messages: [] as OpenAIChatMessage[],
   config: defaultConfig as OpenAIConfig,
@@ -173,7 +196,7 @@ export default function OpenAIProvider({ children }: PropsWithChildren) {
     setConversationId(id);
     setConversations((prev) => ({ ...prev, [id]: conversation }));
 
-    if (router.pathname === CHAT_ROUTE) router.push(`/chat/${id}`);
+    // if (router.pathname === CHAT_ROUTE) router.push(`/chat/${id}`);
   }, [conversationId, messages]);
 
   useEffect(() => {
@@ -244,7 +267,7 @@ export default function OpenAIProvider({ children }: PropsWithChildren) {
 
       try {
         const decoder = new TextDecoder();
-        const { body, ok } = await fetch("/api/completion", {
+        const { body, ok } = await fetch(`${SERVER_ADDRESS}/answer_question`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

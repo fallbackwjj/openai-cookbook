@@ -62,9 +62,9 @@ def process_file():
     try:
         file = request.files['file']
         logging.warning(str(file))
-        handle_file(
+        output_summary = handle_file(
             file, app.session_id, app.pinecone_index, app.tokenizer)
-        return jsonify({"success": True})
+        return jsonify({"success": output_summary})
     except Exception as e:
         logging.error(str(e))
         return jsonify({"success": False})
@@ -73,11 +73,8 @@ def process_file():
 @cross_origin(supports_credentials=True)
 def answer_question():
     try:
-        params = request.get_json()
-        question = params["question"]
-
         answer_question_response = get_answer_from_files(
-            question, app.session_id, app.pinecone_index)
+            request.get_json(), app.session_id, app.pinecone_index)
         return answer_question_response
     except Exception as e:
         return str(e)

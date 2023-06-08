@@ -9,11 +9,12 @@ import { isFileNameInString } from "../services/utils";
 import { FileChunk, FileLite } from "../types/file";
 import { SERVER_ADDRESS } from "../types/constants";
 
-// import ConfigSidebar from "@/components/playground/ConfigSidebar";
-// import PlaygroundHeader from "@/components/playground/PlaygroundHeader";
-// import SystemMessage from "@/components/playground/SystemMessage";
-// import PlaygroundConversations from "@/components/playground/conversations/PlaygroundConversations";
-// import PlaygroundProvider from "@/context/PlaygroundProvider";
+import PlaygroundMessages from "@/components/playground/PlaygroundMessages";
+import ConfigSidebar from "@/components/playground/ConfigSidebar";
+import PlaygroundHeader from "@/components/playground/PlaygroundHeader";
+import SystemMessage from "@/components/playground/SystemMessage";
+import PlaygroundConversations from "@/components/playground/conversations/PlaygroundConversations";
+import PlaygroundProvider from "@/context/PlaygroundProvider";
 
 type FileQandAAreaProps = {
   files: FileLite[];
@@ -82,16 +83,9 @@ function FileQandAArea(props: FileQandAAreaProps) {
       <div className="mt-2">
         Ask a question based on the content of your files:
       </div>
-      <div className="space-y-2">
-        <input
-          className="border rounded border-gray-200 w-full py-1 px-2"
-          placeholder="e.g. What were the key takeaways from the Q1 planning meeting?"
-          name="search"
-          ref={searchBarRef}
-          onKeyDown={handleEnterInSearchBar}
-        />
-        {/* <main className="max-w-screen relative flex max-h-screen w-screen flex-col">
-            <PlaygroundProvider>
+      <React.Fragment>
+          <main className="relative flex max-h-screen flex-col">
+              <PlaygroundProvider>
               <PlaygroundHeader />
               <div className="flex h-[calc(100vh-60px)] max-h-[calc(100vh-60px)] grow flex-row">
                 <div className="flex grow flex-col items-stretch md:flex-row">
@@ -106,7 +100,18 @@ function FileQandAArea(props: FileQandAAreaProps) {
                 <ConfigSidebar />
               </div>
             </PlaygroundProvider>
-          </main> */}
+          </main>
+      </React.Fragment>
+{/* 
+      <div className="space-y-2">
+        <input
+          className="border rounded border-gray-200 w-full py-1 px-2"
+          placeholder="e.g. What were the key takeaways from the Q1 planning meeting?"
+          name="search"
+          ref={searchBarRef}
+          onKeyDown={handleEnterInSearchBar}
+        />
+
         <div
           className="rounded-md bg-gray-50 py-1 px-4 w-max text-gray-500 hover:bg-gray-100 border border-gray-100 shadow cursor-pointer"
           onClick={handleSearch}
@@ -130,7 +135,6 @@ function FileQandAArea(props: FileQandAAreaProps) {
           leaveTo="transform opacity-0"
           className="mb-8"
         >
-          {/* answer from files */}
           {answer && (
             <div className="">
               <ReactMarkdown className="prose" linkTarget="_blank" escapeHtml="true">
@@ -163,6 +167,7 @@ function FileQandAArea(props: FileQandAAreaProps) {
           </Transition>
         </Transition>
       </div>
+       */}
     </div>
   );
 }

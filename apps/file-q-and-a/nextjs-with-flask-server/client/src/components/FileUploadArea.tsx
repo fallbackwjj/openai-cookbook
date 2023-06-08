@@ -9,11 +9,12 @@ import React, {
 import axios from "axios";
 import { ArrowUpTrayIcon } from "@heroicons/react/24/outline";
 import { compact } from "lodash";
-
+import { Transition } from "@headlessui/react";
 import LoadingText from "./LoadingText";
 import { FileLite } from "../types/file";
 import FileViewerList from "./FileViewerList";
 import { SERVER_ADDRESS } from "../types/constants";
+import ReactMarkdown from "react-markdown";
 
 type FileUploadAreaProps = {
   handleSetFiles: Dispatch<SetStateAction<FileLite[]>>;
@@ -29,8 +30,9 @@ function FileUploadArea(props: FileUploadAreaProps) {
   const [error, setError] = useState("");
   const [dragOver, setDragOver] = useState(false);
   const dropzoneRef = useRef<HTMLLabelElement>(null);
-
+  const [answer, setAnswer] = useState("");
   const handleFileChange = useCallback(
+
     async (selectedFiles: FileList | null) => {
       if (selectedFiles && selectedFiles.length > 0) {
         setError("");
@@ -77,6 +79,7 @@ function FileUploadArea(props: FileUploadAreaProps) {
                   processFileResponse.status === 200 &&
                   processFileResponse.data.success
                 ) {
+                  setAnswer(processFileResponse.data.success);
                   const fileObject: FileLite = {
                     name: file.name,
                     url: URL.createObjectURL(file),
@@ -188,7 +191,29 @@ function FileUploadArea(props: FileUploadAreaProps) {
       )}
 
       <FileViewerList files={files} title="Uploaded Files" />
-    </div>
+
+      <div className="demo">
+          <Transition
+            show={answer !== ""}
+            enter="transition duration-600 ease-out"
+            enterFrom="transform opacity-0"
+            enterTo="transform opacity-100"
+            leave="transition duration-125 ease-out"
+            leaveFrom="transform opacity-100"
+            leaveTo="transform opacity-0"
+            className="mb-8"
+          >
+            {answer && (
+              <div className="demo">
+                <ReactMarkdown className="prose">
+                  {answer}
+                </ReactMarkdown>
+              </div>
+            )}
+          </Transition>
+        </div>
+      </div>
+    
   );
 }
 

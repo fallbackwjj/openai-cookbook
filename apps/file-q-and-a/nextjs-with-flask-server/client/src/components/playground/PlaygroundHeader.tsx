@@ -14,12 +14,12 @@ export default function Header({}: Props) {
       <span className="text-lg font-bold">Playground</span>
 
       <div className="flex flex-row gap-x-4">
-        <Link
+        {/* <Link
           href={conversationId ? "/chat/" + conversationId : "/"}
           className="flex items-center gap-x-1 rounded border border-gray-300 p-4 text-gray-700 hover:bg-gray-200"
-        >
+        > */}
           <MdChatBubbleOutline />
-        </Link>
+        {/* </Link> */}
         <AddTokenModal className="py-2" />
       </div>
     </div>

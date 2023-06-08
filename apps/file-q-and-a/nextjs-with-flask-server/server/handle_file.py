@@ -1,14 +1,18 @@
 import logging
 import sys
 import docx2txt
+import textwrap
 
 from PyPDF2 import PdfReader
 from numpy import array, average
 from flask import current_app
 from config import *
-from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import Pinecone
+from langchain.docstore.document import Document
+from langchain.chains.summarize import load_summarize_chain
+from langchain import PromptTemplate
+from langchain.chat_models import ChatOpenAI
+
 
 from utils import get_embeddings, get_pinecone_id_for_file_chunk
 
@@ -74,7 +78,7 @@ def extract_text_from_file(file):
 # Handle a file string by creating embeddings and upserting them to Pinecone
 def handle_file_string(filename, session_id, file_body_string, pinecone_index, tokenizer, file_text_dict, pdf_list):
     """Handle a file string by creating embeddings and upserting them to Pinecone."""
-    logging.info("[handle_file_string] Starting...")
+    logging.warning("[handle_file_string] Starting...")
 
     # Clean up the file string by replacing newlines and double spaces
     clean_file_body_string = file_body_string.replace(
@@ -85,7 +89,7 @@ def handle_file_string(filename, session_id, file_body_string, pinecone_index, t
 
     # Create embeddings for the text
     try:
-        text_embeddings, average_embedding = create_embeddings_for_text(
+        text_embeddings, average_embedding, output_summary = create_embeddings_for_text(
             text_to_embed, tokenizer, pdf_list)
         logging.info(
             "[handle_file_string] Created embedding for {}".format(filename))
@@ -123,6 +127,7 @@ def handle_file_string(filename, session_id, file_body_string, pinecone_index, t
             logging.error(
                 "[handle_file_string] Error upserting batch of embeddings to Pinecone: {}".format(e))
             raise e
+    return output_summary
 
 # Compute the column-wise average of a list of lists
 def get_col_average_from_list_of_lists(list_of_lists):
@@ -152,8 +157,47 @@ def create_embeddings_for_text(text, tokenizer, pdf_list):
             length_function=len
         )
         text_chunks = text_splitter.split_text(text)
-        logging.warning(text_chunks)
-        text_chunks_arrays = text_chunks
+        docs = [Document(page_content=t) for t in text_chunks]
+        logging.warning(len(docs))
+
+        # todo 多账号并发
+        prompt_template = """Generate a summary of the following document, arranging the top 5 points in sequential order starting from 1, with the highest semantic relevance, while maintaining the language consistency of the document: 
+        {text}
+        """
+        PROMPT = PromptTemplate(template=prompt_template, input_variables=["text"])
+        chain = load_summarize_chain(ChatOpenAI(temperature=0, model=GENERATIVE_MODEL, max_tokens=1000), 
+            chain_type="map_reduce", map_prompt=PROMPT, combine_prompt=PROMPT)
+        output_summary = chain({"input_documents": docs}, return_only_outputs=True)  
+        logging.warning(output_summary)     
+        text_chunks_arrays = text_chunks 
+        # wrapped_text = textwrap.fill(output_summary, 
+        #     width=100,
+        #     break_long_words=False,
+        #     replace_whitespace=False)
+
+
+        # prompt_template = """Write a concise bullet point summary of the following:
+
+        # {text}
+
+        # """
+        # refine_template = ("Your job is to produce a final summary\n"
+        #     "We have provided an existing summary up to a certain point: {existing_answer}\n"
+        #     "We have the opportunity to refine the existing summary"
+        #     "(only if needed) with some more context below.\n"
+        #     "------------\n"
+        #     "{text}\n"
+        #     "------------\n"
+        #     "Given the new context, refine the original summary"
+        #     "If the context isn't useful, return the original summary."
+        #     "Write a concise bullet point summary."
+        # )
+        # question_prompt = PromptTemplate(input_variables=["text"], template=prompt_template)
+        # refine_prompt = PromptTemplate(input_variables=["existing_answer", "text"], template=refine_template)
+        # chain = load_summarize_chain(OpenAI(temperature=0, model=GENERATIVE_MODEL, max_tokens=1000), chain_type="refine", 
+        #     return_intermediate_steps=True, question_prompt=question_prompt, refine_prompt=refine_prompt)
+        # output_summary = chain({"input_documents": docs}, return_only_outputs=True)
+        
 
     # Call get_embeddings for each shorter array and combine the results
     embeddings = []
@@ -165,7 +209,7 @@ def create_embeddings_for_text(text, tokenizer, pdf_list):
 
     average_embedding = get_col_average_from_list_of_lists(embeddings)
 
-    return (text_embeddings, average_embedding)
+    return (text_embeddings, average_embedding, output_summary["output_text"])
 
 # Split a text into smaller chunks of size n, preferably ending at the end of a sentence
 def chunks(text, n, tokenizer):

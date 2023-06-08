@@ -21,11 +21,11 @@ export default function App({ Component, pageProps }: AppProps) {
 
   return (
     <>
-      <AuthProvider>
+      {/* <AuthProvider> */}
         <OpenAIProvider>
           <Component {...pageProps} />
         </OpenAIProvider>
-      </AuthProvider>
+      {/* </AuthProvider> */}
     </>
   );
 }
