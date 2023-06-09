@@ -66,7 +66,8 @@ function FileUploadArea(props: FileUploadAreaProps) {
 
               try {
                 const processFileResponse = await axios.post(
-                  `${SERVER_ADDRESS}/process_file`,
+                  // `${SERVER_ADDRESS}/process_file`,
+                  "/backend/process_file"
                   formData,
                   {
                     headers: {
