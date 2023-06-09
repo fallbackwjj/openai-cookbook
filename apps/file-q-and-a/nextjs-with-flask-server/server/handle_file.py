@@ -162,18 +162,18 @@ def create_embeddings_for_text(text, tokenizer, pdf_list):
         logging.warning(len(docs))
 
         # todo 多账号并发
-        prompt_template = """Generate a summary of the following document, arranging the top 5 points in sequential order starting from 1, with the highest semantic relevance, while maintaining the language consistency of the document: 
+        # prompt_template = """Generate a summary of the following document, arranging the top 5 points in sequential order starting from 1, with the highest semantic relevance, while maintaining the language consistency of the document: 
        
-        {text}
+        # {text}
         
-        """
-        PROMPT = PromptTemplate(template=prompt_template, input_variables=["text"])
-        chain = load_summarize_chain(ChatOpenAI(temperature=0, model=GENERATIVE_MODEL, max_tokens=500), 
-            chain_type="map_reduce", map_prompt=PROMPT, combine_prompt=PROMPT) 
-        # chain = load_summarize_chain(OpenAI(temperature=0, model="curie", max_tokens=300), 
-        #     chain_type="map_reduce", map_prompt=PROMPT, combine_prompt=PROMPT, ver)
-        output_summary = chain({"input_documents": docs}, return_only_outputs=True)  
-        logging.warning(output_summary)      
+        # """
+        # PROMPT = PromptTemplate(template=prompt_template, input_variables=["text"])
+        # chain = load_summarize_chain(ChatOpenAI(temperature=0, model=GENERATIVE_MODEL, max_tokens=500), 
+        #     chain_type="map_reduce", map_prompt=PROMPT, combine_prompt=PROMPT) 
+        # # chain = load_summarize_chain(OpenAI(temperature=0, model="curie", max_tokens=300), 
+        # #     chain_type="map_reduce", map_prompt=PROMPT, combine_prompt=PROMPT, ver)
+        # output_summary = chain({"input_documents": docs}, return_only_outputs=True)  
+        # logging.warning(output_summary)      
         text_chunks_arrays = text_chunks 
         # wrapped_text = textwrap.fill(output_summary, 
         #     width=100,

@@ -63,13 +63,17 @@ function FileUploadArea(props: FileUploadAreaProps) {
 
               const formData = new FormData();
               formData.append("file", file);
-
+              var baseUrl = `${SERVER_ADDRESS}/process_file`;
+              if (`${process.env.NODE_ENV}` != "development") {
+                baseUrl = `${SERVER_ADDRESS}/backend/process_file`;
+              }
               try {
                 const processFileResponse = await axios.post(
-                  // `${SERVER_ADDRESS}/process_file`,
-                  "/backend/process_file"
+                  // `${SERVER_ADDRESS}/process_file`,  
+                  baseUrl,
                   formData,
                   {
+                    withCredentials: true,
                     headers: {
                       "Content-Type": "multipart/form-data",
                     },

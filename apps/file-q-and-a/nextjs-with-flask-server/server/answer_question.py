@@ -64,8 +64,7 @@ def get_answer_from_files(question, session_id, pinecone_index):
                     SystemMessagePromptTemplate.from_template(last_system_msg["content"]), 
                     HumanMessagePromptTemplate.from_template(last_user_msg["content"])
                 ]
-            ),
-            verbose=True
+            )
         )
         answer = chain.run(files_string=file_string, question=last_user_msg["content"])
 

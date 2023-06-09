@@ -48,13 +48,18 @@ function FileQandAArea(props: FileQandAAreaProps) {
     setAnswerError("");
 
     let results: FileChunk[] = [];
-
+    var baseUrl = `${SERVER_ADDRESS}/answer_question`;
+    if (`${process.env.NODE_ENV}` != "development") {
+      baseUrl = `${SERVER_ADDRESS}/backend/answer_question`;
+    }
     try {
       const answerResponse = await axios.post(
-        // `${SERVER_ADDRESS}/answer_question`,
-        "/backend/answer_question",
+        baseUrl,
         {
           question,
+        },
+        {
+          withCredentials: true
         }
       );
 
