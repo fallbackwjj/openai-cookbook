@@ -1,8 +1,8 @@
 {
     "rewrites": [
         {
-            "source": "/backend/(.*)", // 准备匹配的接口
-            "destination": "/api/proxy" // 配置路径
+            "source": "/backend/(.*)",
+            "destination": "/api/proxy" 
         }
     ]
 }
