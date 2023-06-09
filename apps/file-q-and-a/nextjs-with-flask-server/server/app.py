@@ -67,7 +67,7 @@ def process_file():
             file, app.session_id, app.pinecone_index, app.tokenizer)
         return jsonify({"success": output_summary})
     except Exception as e:
-        logging.error(str(e))
+        logging.error(f"answer_question: {traceback.format_exc()}")
         return jsonify({"success": False})
 
 @app.route(f"/answer_question", methods=["POST"])
@@ -78,7 +78,7 @@ def answer_question():
             request.get_json(), app.session_id, app.pinecone_index)
         return answer_question_response
     except Exception as e:
-        logging.warning(f"answer_question: {traceback.format_exc()}")
+        logging.error(f"answer_question: {traceback.format_exc()}")
         return str(e)
 
 @app.route("/healthcheck", methods=["GET"])
