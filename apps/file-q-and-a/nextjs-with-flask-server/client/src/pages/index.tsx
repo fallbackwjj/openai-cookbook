@@ -13,6 +13,7 @@ export default function FileQandA() {
     <div className="flex items-left text-left h-screen flex-col">
       <Head>
         <title>File Q&A</title>
+        <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" />
       </Head>
       <div className="max-w-5xl mx-auto m-8 space-y-8 text-gray-800">
         <h1 className="text-4xl">File Q&A</h1>
