@@ -7,11 +7,12 @@ from PyPDF2 import PdfReader
 from numpy import array, average
 from flask import current_app
 from config import *
+
+from langchain import OpenAI, PromptTemplate
+from langchain.chat_models import ChatOpenAI
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.docstore.document import Document
 from langchain.chains.summarize import load_summarize_chain
-from langchain import PromptTemplate
-from langchain.chat_models import ChatOpenAI
 
 
 from utils import get_embeddings, get_pinecone_id_for_file_chunk
@@ -152,8 +153,8 @@ def create_embeddings_for_text(text, tokenizer, pdf_list):
         text_chunks = pdf_list
         text_chunks_arrays = pdf_list
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=300,
-            chunk_overlap=30,
+            chunk_size=800,
+            chunk_overlap=80,
             length_function=len
         )
         text_chunks = text_splitter.split_text(text)
@@ -162,25 +163,23 @@ def create_embeddings_for_text(text, tokenizer, pdf_list):
 
         # todo 多账号并发
         prompt_template = """Generate a summary of the following document, arranging the top 5 points in sequential order starting from 1, with the highest semantic relevance, while maintaining the language consistency of the document: 
+       
         {text}
+        
         """
         PROMPT = PromptTemplate(template=prompt_template, input_variables=["text"])
-        chain = load_summarize_chain(ChatOpenAI(temperature=0, model=GENERATIVE_MODEL, max_tokens=1000), 
-            chain_type="map_reduce", map_prompt=PROMPT, combine_prompt=PROMPT)
+        chain = load_summarize_chain(ChatOpenAI(temperature=0, model=GENERATIVE_MODEL, max_tokens=500), 
+            chain_type="map_reduce", map_prompt=PROMPT, combine_prompt=PROMPT) 
+        # chain = load_summarize_chain(OpenAI(temperature=0, model="curie", max_tokens=300), 
+        #     chain_type="map_reduce", map_prompt=PROMPT, combine_prompt=PROMPT, ver)
         output_summary = chain({"input_documents": docs}, return_only_outputs=True)  
-        logging.warning(output_summary)     
+        logging.warning(output_summary)      
         text_chunks_arrays = text_chunks 
         # wrapped_text = textwrap.fill(output_summary, 
         #     width=100,
         #     break_long_words=False,
         #     replace_whitespace=False)
 
-
-        # prompt_template = """Write a concise bullet point summary of the following:
-
-        # {text}
-
-        # """
         # refine_template = ("Your job is to produce a final summary\n"
         #     "We have provided an existing summary up to a certain point: {existing_answer}\n"
         #     "We have the opportunity to refine the existing summary"
@@ -206,9 +205,7 @@ def create_embeddings_for_text(text, tokenizer, pdf_list):
         embeddings.extend([embedding["embedding"] for embedding in embeddings_response])
 
     text_embeddings = list(zip(text_chunks, embeddings))
-
     average_embedding = get_col_average_from_list_of_lists(embeddings)
-
     return (text_embeddings, average_embedding, output_summary["output_text"])
 
 # Split a text into smaller chunks of size n, preferably ending at the end of a sentence

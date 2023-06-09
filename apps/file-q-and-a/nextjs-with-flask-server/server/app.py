@@ -1,6 +1,7 @@
 from __future__ import print_function
 from config import *
 
+import traceback
 import tiktoken
 import pinecone
 import uuid
@@ -77,6 +78,7 @@ def answer_question():
             request.get_json(), app.session_id, app.pinecone_index)
         return answer_question_response
     except Exception as e:
+        logging.warning(f"answer_question: {traceback.format_exc()}")
         return str(e)
 
 @app.route("/healthcheck", methods=["GET"])

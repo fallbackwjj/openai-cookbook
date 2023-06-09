@@ -55,7 +55,7 @@ def get_answer_from_files(question, session_id, pinecone_index):
                 listChunkList[filechunkid] = file_text
             files_string += file_string
         files_string = files_string[0:2000]
-        logging.warning(f"file_string {files_string}")
+        logging.warning(f"files_string {files_string}")
 
         chain = LLMChain(
             llm=ChatOpenAI(model=GENERATIVE_MODEL, temperature=0, max_tokens=300),
@@ -64,7 +64,8 @@ def get_answer_from_files(question, session_id, pinecone_index):
                     SystemMessagePromptTemplate.from_template(last_system_msg["content"]), 
                     HumanMessagePromptTemplate.from_template(last_user_msg["content"])
                 ]
-            )
+            ),
+            verbose=True
         )
         answer = chain.run(files_string=file_string, question=last_user_msg["content"])
 
@@ -96,7 +97,7 @@ def get_answer_from_files(question, session_id, pinecone_index):
         # choices = response["choices"]  # type: ignore
         # answer = choices[0].message.content.strip()
 
-        listOfStrings = [f"pinecone => {str(listChunkList)}", f"answer => {answer}"]
+        listOfStrings = [f"answer => {answer}"]
         logging.warning(f"[get_answer_from_files] answer: {listOfStrings}")
 
         return answer
