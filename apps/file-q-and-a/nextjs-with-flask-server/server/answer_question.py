@@ -14,7 +14,7 @@ from langchain.prompts.chat import (
 
 from config import *
 
-TOP_K = 2
+TOP_K = 4
 
 
 def get_answer_from_files(question, session_id, pinecone_index):
@@ -34,8 +34,8 @@ def get_answer_from_files(question, session_id, pinecone_index):
             include_metadata=True,
             vector=search_query_embedding,
         )
-        logging.warning(
-            f"[get_answer_from_files] received query response from Pinecone: {query_response}")
+        # logging.warning(
+        #     f"[get_answer_from_files] received query response from Pinecone: {query_response}")
         files_string = ""
         file_text_dict = current_app.config["file_text_dict"]
         listChunkList = {}
@@ -46,7 +46,8 @@ def get_answer_from_files(question, session_id, pinecone_index):
             filename = result.metadata["filename"]
             filechunkid = result.metadata["file_chunk_index"]
             file_text = file_text_dict.get(file_chunk_id)
-            file_string = f"###\n\"{filename}\"\n{file_text}\n"
+            # file_string = f"###\n\"{filename}\"\n{file_text}\n"
+            file_string = f"{file_text}"
             if score < COSINE_SIM_THRESHOLD and i > 0:
                 logging.warning(
                     f"[get_answer_from_files] score {score} is below threshold {COSINE_SIM_THRESHOLD} and i is {i}, breaking")
@@ -54,17 +55,17 @@ def get_answer_from_files(question, session_id, pinecone_index):
             if len(file_text) != 0:
                 listChunkList[filechunkid] = file_text
             files_string += file_string
-        files_string = files_string[0:2000]
         logging.warning(f"files_string {files_string}")
 
         chain = LLMChain(
-            llm=ChatOpenAI(model=GENERATIVE_MODEL, temperature=0, max_tokens=300),
+            llm=ChatOpenAI(model=GENERATIVE_MODEL, temperature=0, max_tokens=500),
             prompt=ChatPromptTemplate.from_messages(
                 [
                     SystemMessagePromptTemplate.from_template(last_system_msg["content"]), 
                     HumanMessagePromptTemplate.from_template(last_user_msg["content"])
                 ]
-            )
+            ),
+            verbose=True,
         )
         answer = chain.run(files_string=file_string, question=last_user_msg["content"])
 

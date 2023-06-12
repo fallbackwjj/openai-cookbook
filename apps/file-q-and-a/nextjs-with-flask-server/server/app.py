@@ -65,7 +65,7 @@ def process_file():
         logging.warning(str(file))
         output_summary = handle_file(
             file, app.session_id, app.pinecone_index, app.tokenizer)
-        return jsonify({"success": output_summary})
+        return jsonify({"success": True})
     except Exception as e:
         logging.error(f"answer_question: {traceback.format_exc()}")
         return jsonify({"success": False})

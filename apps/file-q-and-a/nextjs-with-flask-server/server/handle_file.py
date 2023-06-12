@@ -115,7 +115,6 @@ def handle_file_string(filename, session_id, file_body_string, pinecone_index, t
     # Split the vectors array into smaller batches of max length 2000
     batch_size = MAX_PINECONE_VECTORS_TO_UPSERT_PATCH_SIZE
     batches = [vectors[i:i+batch_size] for i in range(0, len(vectors), batch_size)]
-
     # Upsert each batch to Pinecone
     for batch in batches:
         try:
@@ -158,10 +157,11 @@ def create_embeddings_for_text(text, tokenizer, pdf_list):
             length_function=len
         )
         text_chunks = text_splitter.split_text(text)
-        docs = [Document(page_content=t) for t in text_chunks]
-        logging.warning(len(docs))
+        logging.warning(len(text_chunks))
+        text_chunks_arrays = text_chunks 
 
         # todo 多账号并发
+        # docs = [Document(page_content=t) for t in text_chunks]
         # prompt_template = """Generate a summary of the following document, arranging the top 5 points in sequential order starting from 1, with the highest semantic relevance, while maintaining the language consistency of the document: 
        
         # {text}
@@ -174,7 +174,7 @@ def create_embeddings_for_text(text, tokenizer, pdf_list):
         # #     chain_type="map_reduce", map_prompt=PROMPT, combine_prompt=PROMPT, ver)
         # output_summary = chain({"input_documents": docs}, return_only_outputs=True)  
         # logging.warning(output_summary)      
-        text_chunks_arrays = text_chunks 
+       
         # wrapped_text = textwrap.fill(output_summary, 
         #     width=100,
         #     break_long_words=False,
@@ -206,7 +206,7 @@ def create_embeddings_for_text(text, tokenizer, pdf_list):
 
     text_embeddings = list(zip(text_chunks, embeddings))
     average_embedding = get_col_average_from_list_of_lists(embeddings)
-    return (text_embeddings, average_embedding, output_summary["output_text"])
+    return (text_embeddings, average_embedding, " ")
 
 # Split a text into smaller chunks of size n, preferably ending at the end of a sentence
 def chunks(text, n, tokenizer):
