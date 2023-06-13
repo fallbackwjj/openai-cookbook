@@ -103,7 +103,7 @@ function FileQandAArea(props: FileQandAAreaProps) {
                     <PlaygroundMessages />
                   </div>
                 </div>
-                <ConfigSidebar />
+                {/* <ConfigSidebar /> */}
               </div>
             </PlaygroundProvider>
           </main>

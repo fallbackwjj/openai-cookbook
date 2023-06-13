@@ -57,17 +57,20 @@ def get_answer_from_files(question, session_id, pinecone_index):
             files_string += file_string
         logging.warning(f"files_string {files_string}")
 
+        prompt=ChatPromptTemplate.from_messages(
+            [
+                SystemMessagePromptTemplate.from_template(last_system_msg["content"]), 
+                HumanMessagePromptTemplate.from_template(last_user_msg["content"])
+            ]
+        )
+        # echo de
+        promptMsg=prompt.format_prompt(files_string=files_string, question=last_user_msg["content"]).to_string()
         chain = LLMChain(
             llm=ChatOpenAI(model=GENERATIVE_MODEL, temperature=0, max_tokens=500),
-            prompt=ChatPromptTemplate.from_messages(
-                [
-                    SystemMessagePromptTemplate.from_template(last_system_msg["content"]), 
-                    HumanMessagePromptTemplate.from_template(last_user_msg["content"])
-                ]
-            ),
+            prompt=prompt,
             verbose=True,
         )
-        answer = chain.run(files_string=file_string, question=last_user_msg["content"])
+        answer = chain.run(files_string=files_string, question=last_user_msg["content"])
 
         # Note: this is not the proper way to use the ChatGPT conversational format, but it works for now
         # messages = [
@@ -97,10 +100,13 @@ def get_answer_from_files(question, session_id, pinecone_index):
         # choices = response["choices"]  # type: ignore
         # answer = choices[0].message.content.strip()
 
-        listOfStrings = [f"answer => {answer}"]
-        logging.warning(f"[get_answer_from_files] answer: {listOfStrings}")
-
-        return answer
+        resDict = {
+            "Answer" : answer,
+            "Prompt" : promptMsg,
+        }
+        resDictStr = '\n'.join(f'{k} ===> \n  {v}\n' for k, v in resDict.items())
+        logging.warning(f"[get_answer_from_files] answer: {resDictStr}")
+        return resDictStr
 
     except Exception as e:
         logging.warning(f"[get_answer_from_files] error: {e}")

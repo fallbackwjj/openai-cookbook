@@ -13,6 +13,8 @@ from langchain.chat_models import ChatOpenAI
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.docstore.document import Document
 from langchain.chains.summarize import load_summarize_chain
+from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain.vectorstores import Pinecone
 
 
 from utils import get_embeddings, get_pinecone_id_for_file_chunk
@@ -157,11 +159,15 @@ def create_embeddings_for_text(text, tokenizer, pdf_list):
             length_function=len
         )
         text_chunks = text_splitter.split_text(text)
-        logging.warning(len(text_chunks))
         text_chunks_arrays = text_chunks 
 
+        docs = [Document(page_content=t) for t in text_chunks]
+        logging.warning(len(docs))
+        # docsearch = Pinecone.from_documents(docs, OpenAIEmbeddings(), index_name=PINECONE_INDEX)
+        # res = docsearch.similarity_search("summary")
+        # logging.warning(f"pinecone:{res}")
+
         # todo 多账号并发
-        # docs = [Document(page_content=t) for t in text_chunks]
         # prompt_template = """Generate a summary of the following document, arranging the top 5 points in sequential order starting from 1, with the highest semantic relevance, while maintaining the language consistency of the document: 
        
         # {text}
