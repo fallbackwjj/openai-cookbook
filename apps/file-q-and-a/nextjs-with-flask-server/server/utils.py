@@ -2,6 +2,8 @@ import openai
 import logging
 import sys
 import time
+import hashlib
+import os
 
 from config import *
 
@@ -14,26 +16,15 @@ logging.basicConfig(
     ]
 )
 
-def get_pinecone_id_for_file_chunk(session_id, filename, chunk_index):
-    filename = ''.join(str(ord(c)) for c in filename)
+def get_pinecone_id_for_file_chunk(session_id, chunk_index):
     return str(session_id+"-!"+filename+"-!"+str(chunk_index))
 
-def get_embedding(text, engine):
-    return openai.Engine(id=engine).embeddings(input=[text])["data"][0]["embedding"]
+def calculate_md5(file_path):
+    hash_md5 = hashlib.md5()
+    with open(file_path, "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest()
 
-def get_embeddings(text_array, engine):
-    # Parameters for exponential backoff
-    max_retries = 5 # Maximum number of retries
-    base_delay = 1 # Base delay in seconds
-    factor = 2 # Factor to multiply the delay by after each retry
-    while True:
-        try:
-            return openai.Engine(id=engine).embeddings(input=text_array)["data"]
-        except Exception as e:
-            if max_retries > 0:
-                logging.info(f"Request failed. Retrying in {base_delay} seconds.")
-                time.sleep(base_delay)
-                max_retries -= 1
-                base_delay *= factor
-            else:
-                raise e
+def calculate_file_size(file_path):
+    return os.path.getsize(file_path)

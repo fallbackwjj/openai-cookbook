@@ -1,7 +1,7 @@
 # ----- PINECONE CONFIG -----
 PINECONE_API_KEY: "00f02102-d83f-4d74-b51a-c0e5744ef03a"
 PINECONE_INDEX: "chatdoc" # dimensions: 1536, metric: cosine similarity
-PINECONE_DOC_NAMESPACE: "chatdoc"
+PINECONE_BOE_NAMESPACE: "chatdocboe"
 PINECONE_ENV: "us-west1-gcp-free"
 
 # ----- SERVER PORT ----
@@ -10,10 +10,3 @@ SERVER_PORT: "8300"
 # ---- OPENAI CONFIG -----
 EMBEDDINGS_MODEL: "text-embedding-ada-002"
 GENERATIVE_MODEL: "gpt-3.5-turbo" # use gpt-4 for better results
-EMBEDDING_DIMENSIONS: 1536
-TEXT_EMBEDDING_CHUNK_SIZE: 200
-# This is the minimum cosine similarity score that a file must have with the search query to be considered relevant
-# This is an arbitrary value, and you should vary/ remove this depending on the diversity of your dataset
-COSINE_SIM_THRESHOLD: 0.7
-MAX_TEXTS_TO_EMBED_BATCH_SIZE: 100
-MAX_PINECONE_VECTORS_TO_UPSERT_PATCH_SIZE: 1000

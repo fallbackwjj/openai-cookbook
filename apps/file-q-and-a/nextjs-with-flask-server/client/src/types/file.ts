@@ -8,6 +8,7 @@ export interface FileLite {
   embedding?: number[]; // The file embedding -- or mean embedding if there are multiple embeddings for the file
   chunks?: TextEmbedding[]; // The chunks of text and their embeddings
   extractedText?: string; // The extracted text from the file
+  md5?:string;
 }
 
 export interface FileChunk extends TextEmbedding {

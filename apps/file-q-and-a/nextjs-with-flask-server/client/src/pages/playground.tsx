@@ -26,7 +26,7 @@ export default function Playground() {
                 <SystemMessage />
               </div>
               <div className="flex grow basis-7/12 overflow-hidden">
-                <PlaygroundMessages />
+                {/* <PlaygroundMessages /> */}
               </div>
             </div>
             <ConfigSidebar />

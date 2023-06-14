@@ -1,9 +1,10 @@
 import { OpenAIChatModels } from "./OpenAI.constants";
-
+import { FileLite } from "../../types/file";
 export interface OpenAIChatMessage {
   id?: number;
   role: "system" | "assistant" | "user";
   content: string;
+  files: FileLite[];
 }
 
 export interface OpenAISystemMessage {

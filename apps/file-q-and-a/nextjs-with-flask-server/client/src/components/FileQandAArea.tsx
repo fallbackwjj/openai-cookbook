@@ -91,7 +91,7 @@ function FileQandAArea(props: FileQandAAreaProps) {
       </div>
       <React.Fragment>
           <main className="relative flex max-h-screen flex-col">
-              <PlaygroundProvider>
+            <PlaygroundProvider>
               <PlaygroundHeader />
               <div className="flex h-[calc(100vh-60px)] max-h-[calc(100vh-60px)] grow flex-row">
                 <div className="flex grow flex-col items-stretch md:flex-row">
@@ -100,7 +100,7 @@ function FileQandAArea(props: FileQandAAreaProps) {
                     <SystemMessage />
                   </div>
                   <div className="flex grow basis-7/12 overflow-hidden">
-                    <PlaygroundMessages />
+                    <PlaygroundMessages files = {props.files} />
                   </div>
                 </div>
                 {/* <ConfigSidebar /> */}

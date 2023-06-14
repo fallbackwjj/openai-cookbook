@@ -17,8 +17,13 @@ import {
 import React, { PropsWithChildren, useCallback, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "@/context/AuthProvider";
+import { FileLite } from "../types/file";
 
 import { SERVER_ADDRESS } from "../types/constants";
+
+type FileQandAAreaProps = {
+  files: FileLite[];
+};
 
 const CHAT_ROUTE = "/";
 
@@ -66,7 +71,8 @@ const OpenAIContext = React.createContext<{
   addMessage: (
     content?: string,
     submit?: boolean,
-    role?: "user" | "assistant"
+    role?: "user" | "assistant",
+    files?: FileLite[],
   ) => void;
   removeMessage: (id: number) => void;
   conversationName: string;
@@ -251,8 +257,8 @@ export default function OpenAIProvider({ children }: PropsWithChildren) {
     async (messages_: OpenAIChatMessage[] = []) => {
       if (loading) return;
       setLoading(true);
-
       messages_ = messages_.length ? messages_ : messages;
+      console.log(messages_);
 
       try {
         const decoder = new TextDecoder();
@@ -265,11 +271,12 @@ export default function OpenAIProvider({ children }: PropsWithChildren) {
           body: JSON.stringify({
             ...config,
             messages: [systemMessage, ...messages_].map(
-              ({ role, content }) => ({
+              ({ role, content}) => ({
                 role,
                 content,
               })
             ),
+            files:messages_[0]["files"]
           }),
         });
 
@@ -310,6 +317,7 @@ export default function OpenAIProvider({ children }: PropsWithChildren) {
           updateMessageContent(message.id as number, message.content);
         }
       } catch (error: any) {
+        console.log("error");
         setMessages((prev) => {
           return [
             ...prev,
@@ -317,6 +325,7 @@ export default function OpenAIProvider({ children }: PropsWithChildren) {
               id: prev.length,
               role: "assistant",
               content: error.message,
+              files: messages_[0]["files"],
             },
           ];
         });
@@ -331,7 +340,8 @@ export default function OpenAIProvider({ children }: PropsWithChildren) {
     (
       content: string = "",
       submit_: boolean = false,
-      role: "user" | "assistant" = "user"
+      role: "user" | "assistant" = "user",
+      files?: FileLite[]
     ) => {
       setMessages((prev) => {
         const messages = [
@@ -340,6 +350,7 @@ export default function OpenAIProvider({ children }: PropsWithChildren) {
             id: prev.length,
             role,
             content: content || "",
+            files: files
           } as OpenAIChatMessage,
         ];
         submit_ && submit(messages);

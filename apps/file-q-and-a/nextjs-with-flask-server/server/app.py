@@ -42,17 +42,13 @@ def load_pinecone_index() -> pinecone.Index:
 
 def create_app():
     pinecone_index = load_pinecone_index()
-    tokenizer = tiktoken.get_encoding("gpt2")
     session_id = str(uuid.uuid4().hex)
     app = Flask(__name__)
     app.pinecone_index = pinecone_index
-    app.tokenizer = tokenizer
     app.session_id = session_id
     # log session id
     logging.info(f"session_id: {session_id}")
-    app.config["file_text_dict"] = {}
     CORS(app, supports_credentials=True)
-
     return app
 
 app = create_app()
@@ -63,9 +59,8 @@ def process_file():
     try:
         file = request.files['file']
         logging.warning(str(file))
-        output_summary = handle_file(
-            file, app.session_id, app.pinecone_index, app.tokenizer)
-        return jsonify({"success": True})
+        output_summary = handle_file(file, app.session_id)
+        return jsonify({"success": output_summary})
     except Exception as e:
         logging.error(f"answer_question: {traceback.format_exc()}")
         return jsonify({"success": False})
@@ -75,7 +70,7 @@ def process_file():
 def answer_question():
     try:
         answer_question_response = get_answer_from_files(
-            request.get_json(), app.session_id, app.pinecone_index)
+            request.get_json(), app.session_id)
         return answer_question_response
     except Exception as e:
         logging.error(f"answer_question: {traceback.format_exc()}")

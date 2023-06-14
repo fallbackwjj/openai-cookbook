@@ -4,10 +4,13 @@ import AddMessage from "./AddMessage";
 import PlaygroundMessage from "./PlaygroundMessage";
 import { usePlayground } from "@/context/PlaygroundProvider";
 import { MdOutlineForum } from "react-icons/md";
+import { FileLite } from "../../types/file";
 
-type Props = {};
+type Props = {
+  files : FileLite[]
+};
 
-export default function PlaygroundMessages({}: Props) {
+export default function PlaygroundMessages(props: Props) {
   const { toggleShowConversations } = usePlayground();
   const { messages, loading, submit } = useOpenAI();
   const messageContainer = React.useRef<HTMLDivElement>(null);
@@ -78,7 +81,7 @@ export default function PlaygroundMessages({}: Props) {
         {messages.map((message) => (
           <PlaygroundMessage key={message.id} message={message} />
         ))}
-        <AddMessage />
+        <AddMessage {...props} />
       </div>
 
       <div className="flex gap-3 bg-white p-4">

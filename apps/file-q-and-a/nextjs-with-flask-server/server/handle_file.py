@@ -16,7 +16,7 @@ from langchain.vectorstores import Pinecone
 from langchain.document_loaders import UnstructuredPDFLoader, UnstructuredWordDocumentLoader
 
 
-from utils import get_embeddings, get_pinecone_id_for_file_chunk
+from utils import calculate_md5, get_pinecone_id_for_file_chunk
 
 # Set up logging
 logging.basicConfig(
@@ -29,8 +29,9 @@ logging.basicConfig(
 )
 
 # Handle a file by extracting its text, creating embeddings, and upserting them to Pinecone
-def handle_file(file, session_id, pinecone_index, tokenizer):
+def handle_file(file, session_ids):
     """Handle a file by extracting its text, creating embeddings, and upserting them to Pinecone."""
+    output_summary = "True"
     filename = file.filename
     logging.info("[handle_file] Handling file: {}".format(filename))
     # # Get the file text dict from the current app config
@@ -42,6 +43,8 @@ def handle_file(file, session_id, pinecone_index, tokenizer):
         os.makedirs(fileDic)
     filePath = os.path.join(fileDic, filename)
     file.save(filePath)
+    fileMd5 =calculate_md5(filePath) # as vectorstore uniq 
+    logging.warning(fileMd5)
 
     # loader
     try:
@@ -55,28 +58,39 @@ def handle_file(file, session_id, pinecone_index, tokenizer):
     except ValueError as e:
         logging.error("[handle_file] Error extracting text from file: {}".format(e))
         raise e
-    docs = loader.load()
-   
+    docsChunks = loader.load_and_split()
+
+    # todo use redis as files exist or noexist
+    docsChunks.append(Document(page_content="ping", metadata=dict())) 
+    docsearch = Pinecone.from_existing_index(index_name=PINECONE_INDEX, embedding=OpenAIEmbeddings(),
+        text_key="text", namespace=PINECONE_BOE_NAMESPACE)
+    pingRes = docsearch.similarity_search(query="ping", filter={"md5":fileMd5}, k = 1)
+    logging.warning(f"pingRes:{pingRes}")
+    if pingRes : 
+        return {"summary" : output_summary, "md5" : fileMd5}
+
     # splitters
-    text_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=800,
-        chunk_overlap=80,
-        length_function=len,
-        add_start_index=True,
-    )
-    docsChunks = text_splitter.split_documents(docs)
-    logging.warning(len(docsChunks))
+    # text_splitter = RecursiveCharacterTextSplitter(
+    #     chunk_size=800,
+    #     chunk_overlap=80,
+    #     length_function=len,
+    #     add_start_index=True,
+    # )
+    # docsChunks = text_splitter.create_documents(docs)
 
     # vectorstone
-    i = 1
     vectorIds = []
     for i, doc in enumerate(docsChunks):
-        vectorIds.append(get_pinecone_id_for_file_chunk(session_id, filename, i))
-    docsearch= Pinecone.from_documents(documents=docs, text_key="text",ids=vectorIds, embedding=OpenAIEmbeddings(),index_name=PINECONE_INDEX, namespace=session_id)
+        vectorIds.append(str(fileMd5+"-!"+str(i)))
+        doc.metadata["md5"] = fileMd5 # for md5 filter in answer_queation.py
+    logging.warning(docsChunks)
+    docsearch= Pinecone.from_documents(documents=docsChunks, embedding=OpenAIEmbeddings(), 
+        index_name=PINECONE_INDEX, namespace=PINECONE_BOE_NAMESPACE,
+        text_key="text", ids=vectorIds)
     # simDocs = docsearch.similarity_search("summary")
    
     # summary (todo: use llamaIndex summary)
-    output_summary = "True"
+   
     '''
     prompt_template = """Generate a summary of the following document, arranging the top 5 points in sequential order starting from 1, with the highest semantic relevance, while maintaining the language consistency of the document: 
     
@@ -113,4 +127,4 @@ def handle_file(file, session_id, pinecone_index, tokenizer):
         return_intermediate_steps=True, question_prompt=question_prompt, refine_prompt=refine_prompt)
     output_summary = chain({"input_documents": docs}, return_only_outputs=True)
     '''
-    return output_summary
+    return {"summary" : output_summary, "md5" : fileMd5}

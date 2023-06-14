@@ -84,11 +84,12 @@ function FileUploadArea(props: FileUploadAreaProps) {
                   processFileResponse.status === 200 &&
                   processFileResponse.data.success
                 ) {
-                  setAnswer(processFileResponse.data.success);
+                  setAnswer(processFileResponse.data.success.summary);
                   const fileObject: FileLite = {
                     name: file.name,
                     url: URL.createObjectURL(file),
                     expanded: false,
+                    md5: processFileResponse.data.success.md5,
                   };
                   console.log(fileObject);
 
@@ -171,7 +172,7 @@ function FileUploadArea(props: FileUploadAreaProps) {
                 and drop
               </p>
               <p className="text-xs">
-                PDF, DOCX or TXT (max {props.maxFileSizeMB}MB per file)
+                PDF, DOCX (max {props.maxFileSizeMB}MB per file)
               </p>
               <p className="text-xs mt-1">
                 You can upload up to {props.maxNumFiles - files.length} more{" "}

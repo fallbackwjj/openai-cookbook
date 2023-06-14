@@ -25,7 +25,7 @@ export default function FileQandA() {
 
         <FileUploadArea
           handleSetFiles={setFiles}
-          maxNumFiles={75}
+          maxNumFiles={1}
           maxFileSizeMB={30}
         />
 
