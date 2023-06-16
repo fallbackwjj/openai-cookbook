@@ -260,6 +260,25 @@ export default function OpenAIProvider({ children }: PropsWithChildren) {
       messages_ = messages_.length ? messages_ : messages;
       console.log(messages_);
 
+      let userMsgs = messages_.filter(item => item.role === "user");
+
+      let sortedUserMsgs = userMsgs.sort((a, b) => {
+        if (typeof a.id === 'undefined' || typeof b.id === 'undefined') {
+          console.log('One of the objects does not have an id');
+          return 0;
+        }
+        return b.id - a.id;
+      });
+      let userMsg = sortedUserMsgs[0];    
+      console.log(userMsg)
+      if (userMsg === null || userMsg === undefined || userMsg["files"] ===undefined || userMsg["files"].length === 0 ) {
+        setLoading(false);
+        alert( "Please upload the file first!");
+        setMessages((prev) => {
+          return [];
+        });
+      }
+
       try {
         const decoder = new TextDecoder();
         const { body, ok } = await fetch(`${SERVER_ADDRESS}/answer_question`, {
@@ -269,14 +288,15 @@ export default function OpenAIProvider({ children }: PropsWithChildren) {
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify({
-            ...config,
-            messages: [systemMessage, ...messages_].map(
-              ({ role, content}) => ({
-                role,
-                content,
-              })
-            ),
-            files:messages_[0]["files"]
+            "message" : userMsg["content"],
+            "sysMessage" : systemMessage.content,
+            "channelId" : userMsg["files"][0]["md5"],
+            // messages: [systemMessage, ...messages_].map(
+            //   ({ role, content}) => ({
+            //     role,
+            //     content,
+            //   })
+            // )
           }),
         });
 
@@ -317,7 +337,7 @@ export default function OpenAIProvider({ children }: PropsWithChildren) {
           updateMessageContent(message.id as number, message.content);
         }
       } catch (error: any) {
-        console.log("error");
+        console.log(error);
         setMessages((prev) => {
           return [
             ...prev,

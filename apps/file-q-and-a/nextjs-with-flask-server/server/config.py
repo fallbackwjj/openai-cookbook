@@ -4,6 +4,9 @@ import sys
 from pprint import pformat
 import yaml
 
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+# logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
+
 # Load config items from config.yaml.
 # Use Path.resolve() to get the absolute path of the parent directory
 yaml_dir = Path(__file__).resolve().parent

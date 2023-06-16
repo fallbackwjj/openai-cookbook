@@ -1,7 +1,8 @@
 # ----- PINECONE CONFIG -----
 PINECONE_API_KEY: "00f02102-d83f-4d74-b51a-c0e5744ef03a"
 PINECONE_INDEX: "chatdoc" # dimensions: 1536, metric: cosine similarity
-PINECONE_BOE_NAMESPACE: "chatdocboe"
+PINECONE_FILE_NAMESPACE: "chatdocboe"
+PINECONE_CHAT_NAMESPACE: "chatdocchat"
 PINECONE_ENV: "us-west1-gcp-free"
 
 # ----- SERVER PORT ----
