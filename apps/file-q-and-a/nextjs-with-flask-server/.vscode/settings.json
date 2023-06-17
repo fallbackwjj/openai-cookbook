@@ -2,13 +2,13 @@
     "python.languageServer": "Pylance",
     "editor.fontSize": 12,
     "python.autoComplete.extraPaths": [
-        "/home/ec2-user/openai-cookbook/apps/file-q-and-a/nextjs-with-flask-server/server/venv/lib64/python3.9/site-packages/",
-        "/home/ec2-user/openai-cookbook/apps/file-q-and-a/nextjs-with-flask-server/server/venv/lib/python3.9/site-packages/",
-        "/Users/gunnar/demo/openai-cookbook/apps/file-q-and-a/nextjs-with-flask-server/server/venv/lib/python3.11/site-packages/"
+        "/home/ec2-user/openai-cookbook/apps/file-q-and-a/nextjs-with-flask-server/app/venv/lib64/python3.9/site-packages/",
+        "/home/ec2-user/openai-cookbook/apps/file-q-and-a/nextjs-with-flask-server/app/venv/lib/python3.9/site-packages/",
+        "/Users/gunnar/demo/openai-cookbook/apps/file-q-and-a/nextjs-with-flask-server/app/venv/lib/python3.11/site-packages/"
     ],
     "python.analysis.extraPaths": [
-        "/home/ec2-user/openai-cookbook/apps/file-q-and-a/nextjs-with-flask-server/server/venv/lib64/python3.9/site-packages/",
-        "/home/ec2-user/openai-cookbook/apps/file-q-and-a/nextjs-with-flask-server/server/venv/lib/python3.9/site-packages/",
-        "/Users/gunnar/demo/openai-cookbook/apps/file-q-and-a/nextjs-with-flask-server/server/venv/lib/python3.11/site-packages/"
+        "/home/ec2-user/openai-cookbook/apps/file-q-and-a/nextjs-with-flask-server/app/venv/lib64/python3.9/site-packages/",
+        "/home/ec2-user/openai-cookbook/apps/file-q-and-a/nextjs-with-flask-server/app/venv/lib/python3.9/site-packages/",
+        "/Users/gunnar/demo/openai-cookbook/apps/file-q-and-a/nextjs-with-flask-server/app/venv/lib/python3.11/site-packages/"
     ]
 }

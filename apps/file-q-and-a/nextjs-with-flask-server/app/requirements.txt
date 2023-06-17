@@ -22,3 +22,5 @@ python-multipart==0.0.5
 sqlalchemy>=2.0.16
 sqlalchemy_pagination>=0.0.2
 Pymysql>=1.0.3
+aioboto3>=11.2.0
+fastapi_jwt_auth>=0.5.0

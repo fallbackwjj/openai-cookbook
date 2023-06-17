@@ -63,13 +63,13 @@ function FileUploadArea(props: FileUploadAreaProps) {
 
               const formData = new FormData();
               formData.append("file", file);
-              var baseUrl = `${SERVER_ADDRESS}/process_file`;
+              var baseUrl = `${SERVER_ADDRESS}/api/v1/chat/create`;
               // if (`${process.env.NODE_ENV}` != "development") {
-              //   baseUrl = "/backend/process_file";
+              //   baseUrl = "/backend/api/v1/chat/create";
               // }
               try {
                 const processFileResponse = await axios.post(
-                  // `${SERVER_ADDRESS}/process_file`,  
+                  // `${SERVER_ADDRESS}/api/v1/chat/create`,  
                   baseUrl,
                   formData,
                   {

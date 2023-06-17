@@ -5,6 +5,7 @@ from pprint import pformat
 import yaml
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 # logging.getLogger().addHandler(logging.StreamHandler(stream=sys.stdout))
 
 # Load config items from config.yaml.

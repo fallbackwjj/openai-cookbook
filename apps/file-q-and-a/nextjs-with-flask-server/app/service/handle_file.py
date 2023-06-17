@@ -3,6 +3,7 @@ import sys
 import os
 import json
 import openai
+import boto3
 
 from numpy import array, average
 from config import *
@@ -17,6 +18,7 @@ from langchain.document_loaders import UnstructuredPDFLoader, UnstructuredWordDo
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.llms import AzureOpenAI, OpenAIChat
 from llama_index.callbacks import CallbackManager, LlamaDebugHandler
+from langchain.document_loaders import S3FileLoader
 
 from llama_index import (
     VectorStoreIndex,
@@ -32,8 +34,7 @@ from llama_index import (
 from llama_index.indices.document_summary import DocumentSummaryIndex
 from llama_index.indices.document_summary import DocumentSummaryIndexRetriever
 
-
-from app.utils import calculate_md5, get_pinecone_id_for_file_chunk
+from common.utils import calculate_md5, get_pinecone_id_for_file_chunk
 
 # import nest_asyncio
 # nest_asyncio.apply()
@@ -64,7 +65,7 @@ def handle_file(file, pinecone_index):
     # loader
     try:
         if file.content_type == "application/pdf":
-            loader = UnstructuredPDFLoader(filePath, mode="elements")
+            loader = UnstructuredPDFLoader(filePath, rode="elements")
         elif file.content_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
             loader = UnstructuredWordDocumentLoader(filePath, mode="elements")
         else:
@@ -219,4 +220,40 @@ def handle_file(file, pinecone_index):
         return_intermediate_steps=True, question_prompt=question_prompt, refine_prompt=refine_prompt)
     output_summary = chain({"input_documents": docs}, return_only_outputs=True)
     '''
+    return {"summary" : output_summary, "md5" : fileMd5}
+
+
+# upload file
+def upload_file(file, pinecone_index):
+    """Handle a file by extracting its text, creating embeddings, and upserting them to Pinecone."""
+    output_summary = "True"
+    filename = file.filename
+    fileDic = f"/home/ec2-user/tmpfile"
+    filePath = os.path.join(fileDic, filename)
+    fileMd5 = calculate_md5(filePath) # as vectorstore uniq 
+    logging.info(fileMd5)
+
+    # vectorstone
+    embedding=OpenAIEmbeddings()
+    docsearch = Pinecone.from_existing_index(
+        index_name=PINECONE_INDEX,
+        embedding=embedding,
+        text_key="text", 
+        namespace=PINECONE_FILE_NAMESPACE,
+    )
+    pingRes = docsearch.similarity_search(query="ping", filter={"md5":fileMd5}, k = 1)
+    logging.warning(f"pingRes:{pingRes}")
+    if pingRes : 
+        return {"summary" : output_summary, "md5" : fileMd5}
+
+    # vectorstone
+    vectorIds = []
+    for i, doc in enumerate(docsChunks):
+        vectorIds.append(str(fileMd5+"-!"+str(i)))
+        doc.metadata["md5"] = fileMd5 # for md5 filter in answer_queation.py
+    logging.info(docsChunks)
+    docsearch= Pinecone.from_documents(documents=docsChunks, embedding=embedding, 
+        index_name=PINECONE_INDEX, namespace=PINECONE_FILE_NAMESPACE,
+        text_key="text", ids=vectorIds)
+    
     return {"summary" : output_summary, "md5" : fileMd5}

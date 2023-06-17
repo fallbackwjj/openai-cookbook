@@ -3,13 +3,14 @@ import nltk
 from langchain.vectorstores import Pinecone
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.chains import LLMChain
-from langchain.chat_models import ChatOpenAI
-from langchain.llms import AzureOpenAI
+from langchain.chat_models import ChatOpenAI, AzureChatOpenAI
 from langchain.prompts.chat import (
     ChatPromptTemplate,
     HumanMessagePromptTemplate,
     SystemMessagePromptTemplate,
 )
+from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+
 from llama_index import (
     VectorStoreIndex,
     SimpleDirectoryReader, 
@@ -34,14 +35,14 @@ from llama_index import Document
 from llama_index.retrievers import  KeywordTableSimpleRetriever
 
 
-from app.utils import calculate_md5, get_pinecone_id_for_file_chunk
+from common.utils import calculate_md5, get_pinecone_id_for_file_chunk
 
 import nest_asyncio
 nest_asyncio.apply()
 nltk.download('stopwords')
 
 def get_answer_from_files(question, pinecone_index):
-    userMsg = question.message
+    userMsg = question.userMessage
     systemMsg = question.sysMessage
     fileMd5 = question.channelId
     # get_relevant_documents
@@ -65,7 +66,12 @@ def get_answer_from_files(question, pinecone_index):
     )
     promptMsg=prompt.format_prompt(files_string=files_string, question=userMsg).to_string()
     chain = LLMChain(
-        llm=ChatOpenAI(model=GENERATIVE_MODEL, temperature=0, max_tokens=500),
+        llm=ChatOpenAI(
+            model=GENERATIVE_MODEL, 
+            temperature=0, 
+            max_tokens=500, 
+            callbacks=[StreamingStdOutCallbackHandler()],
+        ),
         prompt=prompt,
         verbose=True,
     )

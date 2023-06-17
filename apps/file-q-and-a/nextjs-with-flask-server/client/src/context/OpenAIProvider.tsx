@@ -281,7 +281,7 @@ export default function OpenAIProvider({ children }: PropsWithChildren) {
 
       try {
         const decoder = new TextDecoder();
-        const { body, ok } = await fetch(`${SERVER_ADDRESS}/answer_question`, {
+        const { body, ok } = await fetch(`${SERVER_ADDRESS}/ap1/v1/chat/send`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
