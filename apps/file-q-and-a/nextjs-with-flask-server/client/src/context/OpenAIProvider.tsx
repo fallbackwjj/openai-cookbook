@@ -287,10 +287,12 @@ export default function OpenAIProvider({ children }: PropsWithChildren) {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
+          credentials: 'include', 
           body: JSON.stringify({
             "message" : userMsg["content"],
             "sysMessage" : systemMessage.content,
             "channelId" : userMsg["files"][0]["md5"],
+            "md5" : userMsg["files"][0]["md5"],
             // messages: [systemMessage, ...messages_].map(
             //   ({ role, content}) => ({
             //     role,
@@ -302,7 +304,6 @@ export default function OpenAIProvider({ children }: PropsWithChildren) {
 
         if (!body) return;
         const reader = body.getReader();
-
         if (!ok) {
           // Get the error message from the response body
           const { value } = await reader.read();

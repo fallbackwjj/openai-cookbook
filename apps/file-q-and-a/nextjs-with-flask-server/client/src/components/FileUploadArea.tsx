@@ -82,14 +82,14 @@ function FileUploadArea(props: FileUploadAreaProps) {
 
                 if (
                   processFileResponse.status === 200 &&
-                  processFileResponse.data.success
+                  processFileResponse.data.code === 200
                 ) {
-                  setAnswer(processFileResponse.data.success.summary);
+                  setAnswer(processFileResponse.data.data.summary);
                   const fileObject: FileLite = {
                     name: file.name,
                     url: URL.createObjectURL(file),
                     expanded: false,
-                    md5: processFileResponse.data.success.md5,
+                    md5: processFileResponse.data.data.channel_id,
                   };
                   console.log(fileObject);
 

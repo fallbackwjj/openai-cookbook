@@ -20,6 +20,7 @@ parts/
 sdist/
 var/
 wheels/
+apps/file-q-and-a/nextjs-with-flask-server/app/tmpfile/
 pip-wheel-metadata/
 share/python-wheels/
 *.egg-info/

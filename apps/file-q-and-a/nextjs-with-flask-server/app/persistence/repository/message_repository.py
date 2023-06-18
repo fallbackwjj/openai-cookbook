@@ -23,3 +23,9 @@ class MessageRepository:
         query = session.query(Message).filter_by(channel_id=channel_id, deleted=deleted).order_by(desc(Message.created_at))
         latest_message = query.first()
         return latest_message
+
+    def create_message(self, message: list[Message]) -> Message:
+        self.db.add_all(message)
+        # self.db.commit()
+        # self.db.refresh(channel)
+        return message

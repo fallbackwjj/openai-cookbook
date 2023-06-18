@@ -42,9 +42,9 @@ nest_asyncio.apply()
 nltk.download('stopwords')
 
 def get_answer_from_files(question, pinecone_index):
-    userMsg = question.userMessage
+    userMsg = question.message
     systemMsg = question.sysMessage
-    fileMd5 = question.channelId
+    fileMd5 = question.md5
     # get_relevant_documents
     embedding=OpenAIEmbeddings()
     docsearch = Pinecone.from_existing_index(index_name=PINECONE_INDEX, embedding=embedding,
@@ -81,12 +81,9 @@ def get_answer_from_files(question, pinecone_index):
         "Answer" : answer,
         "Prompt" : promptMsg,
     }
-    resDictStr = '\n'.join(f'{k} ===> \n  {v}\n' for k, v in resDict.items())
-    logging.info(f"[get_answer_from_files] answer: {resDictStr}")
-    
     # add search index
-    update_chat_history(pinecone_index, fileMd5, resDict)
-    return resDictStr
+    # update_chat_history(pinecone_index, fileMd5, resDict)
+    return resDict
 
 def update_chat_history(pinecone_index, fileMd5, chatHistory):
     vector_store = PineconeVectorStore(

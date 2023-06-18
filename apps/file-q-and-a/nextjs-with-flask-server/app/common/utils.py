@@ -14,12 +14,11 @@ from config import *
 def get_pinecone_id_for_file_chunk(session_id, chunk_index):
     return str(session_id+"-!"+str(chunk_index))
 
-def calculate_md5(file_path):
-    hash_md5 = hashlib.md5()
-    with open(file_path, "rb") as f:
-        for chunk in iter(lambda: f.read(4096), b""):
-            hash_md5.update(chunk)
-    return hash_md5.hexdigest()
+async def calculate_md5(file):
+    md5_hash = hashlib.md5()
+    content = await file.read()
+    md5_hash.update(content)
+    return md5_hash.hexdigest()
 
 def calculate_file_size(file_path):
     return os.path.getsize(file_path)
