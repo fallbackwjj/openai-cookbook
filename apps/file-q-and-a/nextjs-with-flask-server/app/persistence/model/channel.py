@@ -33,10 +33,10 @@ def before_update(mapper, connection, target):
 
 
 class ChannelResSchemas(BaseModel):
-    channel_id : str
-    channel_name : str
-    model : str
-    md5 : str
+    channel_id : str = None
+    channel_name : str = None
+    model : str = None
+    md5 : str = None
     created_at : datetime = None
     summary : str = None
     class Config:

@@ -7,8 +7,8 @@ class ChannelRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def get_channel_by_creator_uid(self, creator_uid: str, deleted: bool) -> List[Channel]:
-        return self.db.query(Channel).filter(Channel.creator_uid == creator_uid, Channel.deleted == deleted).order_by(Channel.updated_at.desc()).all()
+    def get_channel_by_creator_uid(self, creator_uid: str) -> List[Channel]:
+        return self.db.query(Channel).filter(Channel.creator_uid == creator_uid, Channel.deleted == False).order_by(Channel.updated_at.desc()).all()
 
     def is_channel_md5_present(self, md5: str) -> Optional[bool]:
         return self.db.query(exists().where(Channel.md5 == md5)).scalar()

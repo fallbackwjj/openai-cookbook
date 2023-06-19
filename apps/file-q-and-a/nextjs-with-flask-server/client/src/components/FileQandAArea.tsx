@@ -48,9 +48,9 @@ function FileQandAArea(props: FileQandAAreaProps) {
     setAnswerError("");
 
     let results: FileChunk[] = [];
-    var baseUrl = `${SERVER_ADDRESS}/ap1/v1/chat/send`;
+    var baseUrl = `${SERVER_ADDRESS}/api/v1/chat/send`;
     // if (`${process.env.NODE_ENV}` != "development") {
-    //   baseUrl = "/backend/ap1/v1/chat/send";
+    //   baseUrl = "/backend/api/v1/chat/send";
     // }
     try {
       const answerResponse = await axios.post(

@@ -9,7 +9,7 @@ import os
 import hashlib
 from typing import List
 
-from fastapi import FastAPI, UploadFile, BackgroundTasks, Form, File, Depends, APIRouter, HTTPException
+from fastapi import FastAPI, UploadFile, BackgroundTasks, Form, File, Query, Depends, APIRouter, HTTPException
 from fastapi_jwt_auth import AuthJWT
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.utils import get_openapi
@@ -21,7 +21,7 @@ from pydantic import BaseModel, Field
 from botocore.client import BaseClient
 
 from service.handle_file import handle_file, llama_summary
-from service.answer_question import get_answer_from_files
+from service.answer_question import get_answer_from_files, update_chat_history
 from common.api_response import ApiResponse
 from common.utils import custom_exception_handler, calculate_md5
 from common.language_model import LanguageModel
@@ -29,7 +29,7 @@ from common.create_s3_client import CreateS3Client
 
 from sqlalchemy.orm import Session
 from persistence.database import get_db, get_local_db, Base, engine, SessionLocal
-from persistence.model.message import Message, RoleEnum
+from persistence.model.message import Message, MessageResSchemas, RoleEnum
 from persistence.model.channel import Channel, ChannelResSchemas
 from persistence.model.file_meta import FileMeta
 from persistence.repository.channel_repository import ChannelRepository
@@ -78,6 +78,34 @@ app.add_middleware(
 )
 
 ######controll start######
+@app.post("/api/v1/channel/create", response_model=ApiResponse)
+async def createChannel(
+    db: Session = Depends(get_db),
+    model: str = Form(default="gpt-3.5-turbo"),
+):
+    try:
+        # auth.jwt_required()  # 验证 JWT
+        # user_id = auth.get_jwt_subject()
+        uid = "b7f220dc-00b7-400a-b8f0-494a22f1ffcc"
+        # store channel
+        channel = Channel(
+            channel_id = str(uuid.uuid4()),
+            channel_name = "",
+            model = model,
+            creator_uid = uid,
+            md5 = "",
+        )
+        channel = ChannelResSchemas.from_orm(ChannelRepository(db).create_channel(channel))
+        logging.info(channel)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        raise e
+    finally:
+        db.close()
+    return ApiResponse.success(channel)
+ 
+######controll start######
 @app.post("/api/v1/chat/create", response_model=ApiResponse)
 async def uploadfile(
     background_tasks: BackgroundTasks,
@@ -106,7 +134,7 @@ async def uploadfile(
     try:
         # auth.jwt_required()  # 验证 JWT
         # user_id = auth.get_jwt_subject()
-        uid = "80ab8db7-c8e0-4c99-8ad0-f33c9b0a8e13"
+        uid = "b7f220dc-00b7-400a-b8f0-494a22f1ffcc"
         
         if FileMetaRepository(db).is_file_md5_present(fileMd5) != True :
             # upload file to aws s3
@@ -141,7 +169,7 @@ class ChatRequest(BaseModel):
     model: str = None
     md5: str = None
 
-@app.post("/ap1/v1/chat/send")
+@app.post("/api/v1/chat/send")
 def answer_question(
     chatRequest: ChatRequest, 
     db: Session = Depends(get_db)
@@ -151,11 +179,11 @@ def answer_question(
     - **chatRequest**: 聊天室id,用户角色消息,系统角色消息【选填】, llm模型model【选填】
     - **return**: event-stream
     """
-    uid = "80ab8db7-c8e0-4c99-8ad0-f33c9b0a8e13"
+    uid = "b7f220dc-00b7-400a-b8f0-494a22f1ffcc"
     channel = ChannelRepository(db).get_channel_by_channel_id(chatRequest.channelId)
     chatRequest.md5 = channel.md5
     logging.info(f"Getting answer for question: {chatRequest}")
-    res = get_answer_from_files(chatRequest, app.pinecone_index)  
+    res = get_answer_from_files(chatRequest)  
     resStr = '\n'.join(f'{k} ===> \n  {v}\n' for k, v in res.items())
     logging.info(f"[get_answer_from_files] answer: {resStr}")
 
@@ -165,7 +193,7 @@ def answer_question(
             message_id = str(uuid.uuid4()),
             content = res["Ask"],
             channel_id = chatRequest.channelId,
-            role_enum = RoleEnum.HUMAN,
+            role_enum = RoleEnum.HUMAN.value,
             uid = uid,
             deleted = False,
         ),
@@ -173,7 +201,7 @@ def answer_question(
             message_id = str(uuid.uuid4()),
             content = res["Answer"],
             channel_id = chatRequest.channelId,
-            role_enum = RoleEnum.AI,
+            role_enum = RoleEnum.AI.value,
             uid = uid,
             deleted = False,
         ),
@@ -182,6 +210,20 @@ def answer_question(
     MessageRepository(db).create_message(msgList)
     db.commit()
     return resStr
+
+@app.get("/api/v1/chat/query", response_model=ApiResponse)
+def keyword_query(
+    q: str = Query(..., description="q"),
+    db: Session = Depends(get_db)
+):
+    uid = "b7f220dc-00b7-400a-b8f0-494a22f1ffcc"   
+    res = update_chat_history(
+        app.pinecone_index, 
+        q,
+        MessageRepository(db).get_message_by_creator_uid(uid),
+        ChannelRepository(db).get_channel_by_creator_uid(uid),
+    )
+    return ApiResponse.success({})
 
 @app.get("/healthcheck")
 def healthcheck():
